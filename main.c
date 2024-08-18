@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+
+// Fonction pour initialiser le plateau de jeu
+void newBoard(int board[], int n, int p) {
+    srand(time(NULL)); // Initialisation de la graine du générateur de nombres aléatoires
+    int sum = p; // Initialisation de la somme totale des pions
+
+    for (int i = 0; i < n - 1; i++) { // Parcours du plateau jusqu'à l'avant-dernière case
+        int max_pions_case = sum - (n - 1 - i); // Calcul du nombre maximal de pions pour la case actuelle
+        if (max_pions_case > p) { // Si le nombre maximal est supérieur à p, le réduire à p
+            max_pions_case = p;
+        }
+        int random_pions = rand() % (max_pions_case + 1); // Génération d'un nombre aléatoire de pions pour la case
+        board[i] = random_pions; // Assignation du nombre de pions à la case actuelle
+        sum -= random_pions; // Mise à jour de la somme totale des pions restants
+    }
+    board[n - 1] = sum; // Assignation de la somme restante à la dernière case du plateau
+}
+
+// Procédure pour afficher le plateau de jeu
+void display(int board[], int n) {
+    printf("\nPlateau de jeu :\n");
+    printf("\n");
+
+    for (int i = 0; i < n; i++) {
+        if (board[i] < 10) { // Si le nombre de pions est inférieur à 10, alignement visuel
+            printf("%d | ", board[i]); // Affichage de chaque case du plateau
+        } else {
+            printf("%d | ", board[i]); // Affichage de chaque case du plateau
+        }
+    }
+
+    printf("\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("____"); // Ligne de séparation sous chaque case du plateau
+    }
+
+    printf("\n");
+    printf("\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("%d | ", i+1); // Affichage des indices des cases du plateau
+    }
+    printf("\n");
+}
+
+// Fonction pour vérifier si une case contient un pion déplaçable
+bool possibleSquare(int board[], int i) {
+    return (board[i] > 0); // Vérification si le nombre de pions dans la case est supérieur à 0
+}
+
+// Fonction pour sélectionner une case contenant un pion déplaçable
+int selectSquare(int board[], int n) {
+    int selection;
+    do {
+        printf("Choisissez une case contenant un pion deplacable (1 - %d) : ", n);
+        scanf("%d", &selection); // Saisie de la case sélectionnée par le joueur
+        selection--; // Ajustement de l'index 0-based
+    } while (selection < 0 || selection >= n || !possibleSquare(board, selection)); // Vérification de la validité de la case sélectionnée
+    return selection;
+}
+
+// Fonction pour vérifier si une case est une destination valide pour un pion donné
+bool possibleDestination(int board[], int i, int j) {
+    return (j < i && (board[j] == 0 || board[j] > 0)); // Vérification si la case de destination est valide pour le déplacement du pion
+}
+
+// Fonction pour sélectionner une destination pour un pion donné
+int selectDestination(int board[], int i) {
+    int destination;
+    do {
+        printf("Choisissez une destination valide pour le pion (1 - %d) : ", i);
+        scanf("%d", &destination); // Saisie de la case de destination sélectionnée par le joueur
+        destination--; // Ajustement de l'index 0-based
+    } while (!possibleDestination(board, i, destination)); // Vérification de la validité de la case de destination sélectionnée
+    return destination;
+}
+
+// Procédure pour déplacer un pion
+void move(int board[], int i, int j) {
+    board[j] += 1; // Ajout du pion à la case de destination
+    board[i] -= 1; // Retrait du pion de la case d'origine
+}
+
+// Fonction pour vérifier si le joueur a perdu
+bool lose(int board[], int n) {
+    for (int i = 0; i < n; i++) {
+        if (board[i] > 0) { // Si au moins une case contient un pion, le joueur n'a pas perdu
+            return false;
+        }
+    }
+    return true; // Si aucune case ne contient de pion, le joueur a perdu
+}
+
+// Fonction pour vérifier si le joueur a gagné
+bool win(int board[], int n, int p) {
+    return (board[0] == p); // Vérification si la première case contient le nombre maximal de pions
+}
+
+// Procédure pour jouer une partie complète
+void jeu(int n, int p) {
+    int board[n];
+    newBoard(board, n, p); // Initialisation du plateau de jeu
+    display(board, n); // Affichage du plateau de jeu initial
+    int currentPlayer = 1; // Initialisation du joueur actuel
+
+    while (!lose(board, n)) { // Tant que le jeu n'est pas terminé
+        printf("\nJoueur %d :\n", currentPlayer);
+        int square = selectSquare(board, n); // Sélection de la case contenant un pion déplaçable
+        int destination = selectDestination(board, square); // Sélection de la case de destination pour le pion
+        move(board, square, destination); // Déplacement du pion
+        display(board, n); // Affichage du plateau de jeu après le déplacement
+
+        if (win(board, n, p)) { // Si le joueur a gagné
+            printf("\nLe joueur %d a gagne !\n", currentPlayer);
+            return; // Fin de la partie
+        }
+        currentPlayer = (currentPlayer == 1) ? 2 : 1; // Changement de joueur en utilisantr l'expression conditionnelle ternaire
+    }
+    printf("\nLe joueur %d a perdu.\n", currentPlayer); // Affichage du joueur ayant perdu après la fin de la partie
+}
+
+int main() {
+    int n, p;
+    printf("Entrez le nombre de cases : ");
+    scanf("%d", &n);
+    printf("Entrez le nombre maximal de pions par case : ");
+    scanf("%d", &p);
+    jeu(n, p); // Lancement du jeu avec les paramètres saisis par l'utilisateur
+    return 0;
+}
